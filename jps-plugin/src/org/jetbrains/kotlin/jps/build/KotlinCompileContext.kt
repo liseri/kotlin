@@ -84,7 +84,6 @@ class KotlinCompileContext(val context: CompileContext) {
                 // global cache needs to be rebuilt
 
                 testingLogger?.invalidOrUnusedCache(null, null, initialLookupsCacheStateDiff)
-                KotlinBuilder.LOG.info("Global lookup map are INVALID: $initialLookupsCacheStateDiff")
 
                 if (initialLookupsCacheStateDiff.actual != null) {
                     markAllKotlinForRebuild("Kotlin incremental cache settings or format was changed")
@@ -113,7 +112,6 @@ class KotlinCompileContext(val context: CompileContext) {
     private fun logMarkDirtyForTestingBeforeRound(file: File, shouldProcess: Boolean): Boolean {
         if (shouldProcess) {
             testingLogger?.markedAsDirtyBeforeRound(listOf(file))
-            testingLogger?.markedAsDirtyAfterRound(listOf(file))
         }
         return shouldProcess
     }

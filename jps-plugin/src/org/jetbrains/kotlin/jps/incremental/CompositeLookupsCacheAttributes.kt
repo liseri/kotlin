@@ -57,6 +57,12 @@ class CompositeLookupsCacheAttributesManager(
             actualComponentsFile.writeText(values.components.joinToString("\n"))
         }
     }
+
+    override fun isCompatible(actual: CompositeLookupsCacheAttributes, expected: CompositeLookupsCacheAttributes): Boolean {
+        // cache can be reused when all required (expected) components are present
+        // (components that are not required anymore are not not interfere)
+        return actual.version == expected.version && actual.components.containsAll(expected.components)
+    }
 }
 
 data class CompositeLookupsCacheAttributes(

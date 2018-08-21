@@ -37,6 +37,11 @@ interface CacheAttributesManager<Attrs> {
      * Consider using `loadDiff().saveExpectedIfNeeded()` for saving attributes values for next build.
      */
     fun writeActualVersion(values: Attrs?)
+
+    /**
+     * Check if cache with [actual] attributes values can be used when [expected] attributes are required.
+     */
+    fun isCompatible(actual: Attrs, expected: Attrs): Boolean = actual == expected
 }
 
 fun <Attrs> CacheAttributesManager<Attrs>.loadDiff(

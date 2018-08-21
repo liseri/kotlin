@@ -20,7 +20,7 @@ data class CacheAttributesDiff<Attrs>(
     val status: CacheStatus
         get() =
             if (expected != null) {
-                if (actual == expected) CacheStatus.VALID
+                if (actual != null && manager.isCompatible(actual, expected)) CacheStatus.VALID
                 else CacheStatus.INVALID
             } else {
                 if (actual != null) CacheStatus.SHOULD_BE_CLEARED

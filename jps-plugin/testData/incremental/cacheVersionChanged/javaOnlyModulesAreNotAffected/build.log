@@ -1,5 +1,6 @@
 ================ Step #1 =================
 
+Lookups cache are INVALID: actual=(777, [jvm]) -> expected=(3011001, [jvm])
 Building module1
 Cleaning output files:
   out/production/module1/A.class
@@ -18,6 +19,7 @@ Exit code: NOTHING_DONE
 
 ================ Step #2 =================
 
+Lookups cache are INVALID: actual=(777, [jvm]) -> expected=(3011001, [jvm])
 Building module1
 Cleaning output files:
   out/production/module1/B.class
