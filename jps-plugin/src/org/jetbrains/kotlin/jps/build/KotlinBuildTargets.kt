@@ -106,11 +106,14 @@ class KotlinChunk(val context: KotlinCompileContext, val targets: List<KotlinMod
         compilerArguments.apiVersion?.let { ApiVersion.parse(it) } ?: ApiVersion.createByLanguageVersion(langVersion)
 
     fun shouldRebuild(): Boolean {
-        if (isVersionChanged()) return true
+        if (isVersionChanged()) {
+            // info message about version change reported in `isVersionChanged()`
+            return true
+        }
 
         targets.forEach {
             if (it.initialLocalCacheAttributesDiff.status == CacheStatus.INVALID) {
-                context.testingLogger?.invalidOrUnusedCache(it.initialLocalCacheAttributesDiff)
+                context.testingLogger?.invalidOrUnusedCache(this, null, it.initialLocalCacheAttributesDiff)
                 KotlinBuilder.LOG.info("$it cache is invalid ${it.initialLocalCacheAttributesDiff}, rebuilding $this")
                 return true
             }
@@ -123,7 +126,10 @@ class KotlinChunk(val context: KotlinCompileContext, val targets: List<KotlinMod
         val buildMetaInfo = representativeTarget.buildMetaInfoFactory.create(compilerArguments)
 
         for (target in targets) {
-            if (target.isVersionChanged(this, buildMetaInfo)) return true
+            if (target.isVersionChanged(this, buildMetaInfo)) {
+                KotlinBuilder.LOG.info("$target version changed, rebuilding $this")
+                return true
+            }
         }
 
         return false

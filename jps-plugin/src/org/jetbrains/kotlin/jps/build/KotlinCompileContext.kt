@@ -49,6 +49,8 @@ class KotlinCompileContext(val context: CompileContext) {
     val rebuildAfterCacheVersionChanged = RebuildAfterCacheVersionChangeMarker(dataManager)
     val hasKotlinMarker = HasKotlinMarker(dataManager)
 
+    var rebuildingAllKotlin = false
+
     fun loadTargets() {
         val globalCacheRootPath = dataPaths.getTargetDataRoot(KotlinDataContainerTarget)
 
@@ -80,27 +82,31 @@ class KotlinCompileContext(val context: CompileContext) {
         when (initialLookupsCacheStateDiff.status) {
             CacheStatus.INVALID -> {
                 // global cache needs to be rebuilt
-                testingLogger?.invalidOrUnusedCache(initialLookupsCacheStateDiff)
 
+                testingLogger?.invalidOrUnusedCache(null, null, initialLookupsCacheStateDiff)
                 KotlinBuilder.LOG.info("Global lookup map are INVALID: $initialLookupsCacheStateDiff")
 
-                clearLookupCache()
-                markAllKotlinForRebuild("Kotlin incremental cache setting or format was changed")
-            }
-            CacheStatus.VALID -> {
-                // global cache is enabled and valid
-                // let check local module caches
-                chunks.forEach { chunk ->
-                    if (chunk.shouldRebuild()) markChunkForRebuildBeforeBuild(chunk)
+                if (initialLookupsCacheStateDiff.actual != null) {
+                    markAllKotlinForRebuild("Kotlin incremental cache settings or format was changed")
+                    clearLookupCache()
+                } else {
+                    markAllKotlinForRebuild("Kotlin incremental cache is missed or corrupted")
                 }
             }
+            CacheStatus.VALID -> Unit
             CacheStatus.SHOULD_BE_CLEARED -> {
-                context.testingContext?.buildLogger?.invalidOrUnusedCache(initialLookupsCacheStateDiff)
+                context.testingContext?.buildLogger?.invalidOrUnusedCache(null, null, initialLookupsCacheStateDiff)
                 KotlinBuilder.LOG.info("Removing global cache as it is not required anymore: $initialLookupsCacheStateDiff")
 
                 clearAllCaches()
             }
             CacheStatus.CLEARED -> Unit
+        }
+    }
+
+    fun checkChunkCacheVersion(chunk: KotlinChunk) {
+        if (shouldCheckCacheVersions && !rebuildingAllKotlin) {
+            if (chunk.shouldRebuild()) markChunkForRebuildBeforeBuild(chunk)
         }
     }
 
@@ -113,6 +119,9 @@ class KotlinCompileContext(val context: CompileContext) {
     }
 
     fun markAllKotlinForRebuild(reason: String) {
+        if (rebuildingAllKotlin) return
+        rebuildingAllKotlin = true
+
         KotlinBuilder.LOG.info("Rebuilding all Kotlin: $reason")
 
         val dataManager = context.projectDescriptor.dataManager
@@ -157,11 +166,10 @@ class KotlinCompileContext(val context: CompileContext) {
         chunks.forEach { chunk ->
             chunk.targets.forEach { target ->
                 if (target.initialLocalCacheAttributesDiff.status == CacheStatus.SHOULD_BE_CLEARED) {
-                    KotlinBuilder.LOG.debug(
-                        "$target caches is cleared as not required anymore: ",
-                        target.initialLocalCacheAttributesDiff
+                    KotlinBuilder.LOG.info(
+                        "$target caches is cleared as not required anymore: ${target.initialLocalCacheAttributesDiff}"
                     )
-                    testingLogger?.invalidOrUnusedCache(target.initialLocalCacheAttributesDiff)
+                    testingLogger?.invalidOrUnusedCache(null, target, target.initialLocalCacheAttributesDiff)
                     dataManager.getKotlinCache(target)?.clean()
                 }
             }

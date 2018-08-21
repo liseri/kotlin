@@ -64,6 +64,7 @@ import org.jetbrains.kotlin.incremental.withIC
 import org.jetbrains.kotlin.jps.build.KotlinJpsBuildTest.LibraryDependency.*
 import org.jetbrains.kotlin.jps.model.kotlinCommonCompilerArguments
 import org.jetbrains.kotlin.jps.model.kotlinCompilerArguments
+import org.jetbrains.kotlin.jps.platforms.KotlinModuleBuildTarget
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -990,7 +991,11 @@ open class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
                 }
 
                 override fun afterBuildStarted(context: CompileContext, chunk: ModuleChunk) {}
-                override fun invalidOrUnusedCache(attributesDiff: CacheAttributesDiff<*>) {}
+                override fun invalidOrUnusedCache(
+                    chunk: KotlinChunk?,
+                    target: KotlinModuleBuildTarget<*>?,
+                    attributesDiff: CacheAttributesDiff<*>
+                ) {}
                 override fun buildFinished(exitCode: ModuleLevelBuilder.ExitCode) {}
                 override fun markedAsDirtyBeforeRound(files: Iterable<File>) {}
                 override fun markedAsDirtyAfterRound(files: Iterable<File>) {}

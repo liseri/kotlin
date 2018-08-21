@@ -52,4 +52,4 @@ class CacheVersionManager(
     }
 }
 
-class CacheVersion(val version: Int)
+data class CacheVersion(val version: Int)

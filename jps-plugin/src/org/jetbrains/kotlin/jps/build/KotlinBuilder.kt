@@ -136,6 +136,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
         val kotlinContext = context.kotlin
         val targets = chunk.targets
         val dataManager = context.projectDescriptor.dataManager
+        val kotlinChunk = kotlinContext.getChunk(chunk)
 
         if (targets.none { kotlinContext.hasKotlinMarker[it] == true }) return
 
@@ -161,6 +162,11 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
             LOG.info(e)
             context.kotlin.markAllKotlinForRebuild("Lookup storage is corrupted")
             return
+        }
+
+        // todo(1.2.80): report error when representative target is not kotlin target (when kotlinChunk == null)
+        if (kotlinChunk != null) {
+            kotlinContext.checkChunkCacheVersion(kotlinChunk)
         }
 
         markAdditionalFilesForInitialRound(chunk, context, fsOperations, roundDirtyFiles)
