@@ -5,5 +5,6 @@ Exit code: NOTHING_DONE
 
 ================ Step #2 =================
 
+Lookups cache are INVALID: actual=null -> expected=(3011001, [jvm])
 Exit code: NOTHING_DONE
 ------------------------------------------

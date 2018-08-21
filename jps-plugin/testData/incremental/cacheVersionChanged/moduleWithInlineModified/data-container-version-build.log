@@ -10,9 +10,6 @@ End of files
 Compiling files:
   module1/src/A.kt
 End of files
-Marked as dirty by Kotlin:
-  module1/src/A.kt
-  module2/src/B.kt
 Exit code: OK
 ------------------------------------------
 Building module2

@@ -142,6 +142,8 @@ class KotlinChunk(val context: KotlinCompileContext, val targets: List<KotlinMod
         )
 
     fun saveVersions() {
+        context.ensureLookupsCacheAttributesSaved()
+
         targets.forEach {
             it.initialLocalCacheAttributesDiff.saveExpectedIfNeeded()
         }

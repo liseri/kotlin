@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.jps.incremental.KotlinDataContainerTarget
 import org.jetbrains.kotlin.jps.incremental.cleanLookupStorage
 import org.jetbrains.kotlin.jps.incremental.getKotlinCache
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal val kotlinCompileContextKey = Key<KotlinCompileContext>("kotlin")
 
@@ -67,7 +68,9 @@ class KotlinCompileContext(val context: CompileContext) {
             if (moduleBuildTargets.isNotEmpty()) {
                 chunks.add(KotlinChunk(this, moduleBuildTargets))
                 moduleBuildTargets.forEach {
-                    expectedLookupsCacheComponents.add(it.globalLookupCacheId)
+                    if (it.isIncrementalCompilationEnabled) {
+                        expectedLookupsCacheComponents.add(it.globalLookupCacheId)
+                    }
                 }
             }
         }
@@ -100,6 +103,17 @@ class KotlinCompileContext(val context: CompileContext) {
                 clearAllCaches()
             }
             CacheStatus.CLEARED -> Unit
+        }
+    }
+
+    private val lookupAttributesSaved = AtomicBoolean(false)
+
+    /**
+     * Called on every successful compilation
+     */
+    fun ensureLookupsCacheAttributesSaved() {
+        if (lookupAttributesSaved.compareAndSet(false, true)) {
+            initialLookupsCacheStateDiff.saveExpectedIfNeeded()
         }
     }
 
@@ -175,7 +189,7 @@ class KotlinCompileContext(val context: CompileContext) {
     }
 
     fun dispose() {
-        initialLookupsCacheStateDiff.saveExpectedIfNeeded()
+
     }
 
     fun getChunk(rawChunk: ModuleChunk): KotlinChunk? {

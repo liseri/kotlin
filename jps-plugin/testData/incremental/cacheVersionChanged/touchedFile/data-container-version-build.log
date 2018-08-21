@@ -12,9 +12,5 @@ Compiling files:
   src/b.kt
   src/other.kt
 End of files
-Marked as dirty by Kotlin:
-  src/a.kt
-  src/b.kt
-  src/other.kt
 Exit code: OK
 ------------------------------------------
