@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.idea.quickfix.createFromUsage.createCallable
 import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.ide.util.EditorHelper
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.idea.util.isAbstract
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.util.*
 
 open class CreateCallableFromUsageFix<E : KtElement>(
@@ -182,16 +183,8 @@ abstract class CreateCallableFromUsageFixBase<E : KtElement>(
         val element = element ?: return
         val callableInfo = callableInfos.first()
 
-        val fileForBuilder: KtFile
-        val editorForBuilder: Editor
-        if (file is KtFile) {
-            fileForBuilder = file
-            editorForBuilder = editor
-        } else {
-            fileForBuilder = element.containingKtFile
-            EditorHelper.openInEditor(element)
-            editorForBuilder = FileEditorManager.getInstance(project).selectedTextEditor!!
-        }
+        val fileForBuilder = element.containingKtFile
+        val editorForBuilder = EditorHelper.openInEditor(element, true, true).cast<TextEditor>().editor
 
         val callableBuilder =
             CallableBuilderConfiguration(callableInfos, element as KtElement, fileForBuilder, editorForBuilder, isExtension).createBuilder()
@@ -220,7 +213,7 @@ abstract class CreateCallableFromUsageFixBase<E : KtElement>(
             val containers = receiverTypeCandidates
                 .mapNotNull { candidate -> getDeclarationIfApplicable(project, candidate)?.let { candidate to it } }
 
-            chooseContainerElementIfNecessary(containers, editor, popupTitle, false, { it.second }) {
+            chooseContainerElementIfNecessary(containers, editorForBuilder, popupTitle, false, { it.second }) {
                 runBuilder(CallablePlacement.WithReceiver(it.first))
             }
         } else {
@@ -228,7 +221,7 @@ abstract class CreateCallableFromUsageFixBase<E : KtElement>(
                 "No receiver type candidates: ${element.text} in ${file.text}"
             }
 
-            chooseContainerElementIfNecessary(callableInfo.possibleContainers, editor, popupTitle, true, { it }) {
+            chooseContainerElementIfNecessary(callableInfo.possibleContainers, editorForBuilder, popupTitle, true, { it }) {
                 val container = if (it is KtClassBody) it.parent as KtClassOrObject else it
                 runBuilder(CallablePlacement.NoReceiver(container))
             }
